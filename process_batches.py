@@ -5,11 +5,11 @@ from scipy.io import loadmat
 import pickle
 from pathlib import Path
 from tqdm import tqdm
-import pandas as pd
+
 
 if __name__ == "__main__":
     lambda1 = 0.19029
-    for batch in tqdm(range(2), desc='processing batches'):
+    for batch in tqdm(range(52), desc='processing batches'):
 
         # load batch
         data = loadmat('data/batch_'+str(batch)+'.mat')
