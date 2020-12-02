@@ -70,11 +70,15 @@ if __name__ == "__main__":
                      'y': y,
                      'lambda1': lambda1
                      }
+        try:
+            fit = model.sampling(data=stan_data, init=init_function, iter=2000, chains=4, refresh=2000)
 
-        fit = model.sampling(data=stan_data, init=init_function, iter=2000, chains=4, refresh=2000)
+            # extract the results
+            traces = fit.extract()
+            traces['t'] = t
+            traces['h_tg'] = data['h_tg'][sel,0]
+            with open('results/batch_'+str(batch)+'.pkl', 'wb') as handle:
+                pickle.dump(traces, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        except:
+            print('Error in fitting')
 
-        # extract the results
-        traces = fit.extract()
-
-        with open('results/batch_'+str(batch)+'.pkl', 'wb') as handle:
-            pickle.dump(traces, handle, protocol=pickle.HIGHEST_PROTOCOL)

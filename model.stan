@@ -8,7 +8,7 @@ data {
 
 parameters {
     // set the upper limit according to nyquist sampling criteria?
-    real<lower=50,upper=200> alpha;     // frequency constant
+    real<lower=50,upper=400> alpha;     // frequency constant
     real<lower=-200,upper=200> beta;      // frequency linear
     real mu;                            // signal mean
     real tau;                  // decay rate
