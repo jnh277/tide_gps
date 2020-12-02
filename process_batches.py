@@ -71,10 +71,10 @@ if __name__ == "__main__":
                      'lambda1': lambda1
                      }
 
-        fit = model.sampling(data=stan_data, init=init_function, iter=2000, chains=4)
+        fit = model.sampling(data=stan_data, init=init_function, iter=2000, chains=4, refresh=2000)
 
         # extract the results
         traces = fit.extract()
 
-        df = pd.DataFrame(traces)
-        df.to_csv('results/batch_'+str(batch)+'.csv')
+        with open('results/batch_'+str(batch)+'.pkl', 'wb') as handle:
+            pickle.dump(traces, handle, protocol=pickle.HIGHEST_PROTOCOL)
