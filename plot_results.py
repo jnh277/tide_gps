@@ -33,19 +33,27 @@ if __name__ == "__main__":
                 h_hmc = traces['h']
                 h_mean = h_hmc.mean(axis=0)
                 m = h_hmc.shape[0]
-                n_plot = 200
+                n_plot = 400
                 inds = np.random.choice(m, n_plot)
 
                 # plt.plot(t, h_hmc[0, :], linewidth=2, color='g', alpha=0.2, label='hmc samples')
                 # for ind in inds:
                 #     plt.plot(t, h_hmc[ind, :], linewidth=2, color='g', alpha=0.01)
                 # plt.plot(t, h_mean, color='k', label='mean')
-                plt.plot(t, h_tg* 0.01, color='red', ls='--', label='tide gauge')
+
 
 
                 h_std = h_hmc.mean(axis=1).std()
-                plt.plot(t.mean(), h_hmc.mean(), 'o', color='black')
-                plt.errorbar(t.mean(),h_hmc.mean(),2*h_std, color='black')
+
+                if h_std < 0.01:
+                    # plt.plot(t.mean(), h_hmc.mean(), 'o', color='black')
+                    # plt.errorbar(t.mean(),h_hmc.mean(),2*h_std, color='black')
+                    for ind in inds:
+                        plt.plot(t, h_hmc[ind, :], linewidth=2, color='g', alpha=0.01)
+                    # plt.plot(t, h_mean, color='k', label='mean')
+
+                plt.plot(t, h_tg * 0.01, color='red', ls='--', label='tide gauge')
+
 
                 iprns.append(data['iprn'])
                 js.append(data['j'])

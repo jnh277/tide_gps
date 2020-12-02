@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 if __name__ == "__main__":
     lambda1 = 0.19029
-    for batch in tqdm(range(52), desc='processing batches'):
+    for batch in tqdm(range(29,52), desc='processing batches'):
 
         # load batch
         data = loadmat('data/batch_'+str(batch)+'.mat')
@@ -75,8 +75,8 @@ if __name__ == "__main__":
 
             # extract the results
             traces = fit.extract()
-            traces['t'] = t
-            traces['h_tg'] = data['h_tg'][sel,0]
+            # traces['t'] = t
+            # traces['h_tg'] = data['h_tg'][sel,0]
             with open('results/batch_'+str(batch)+'.pkl', 'wb') as handle:
                 pickle.dump(traces, handle, protocol=pickle.HIGHEST_PROTOCOL)
         except:

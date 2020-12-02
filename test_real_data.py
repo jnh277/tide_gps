@@ -6,8 +6,8 @@ import pickle
 from pathlib import Path
 
 
-data = loadmat('test_data.mat')
-# data = loadmat('data/batch_0.mat')
+# data = loadmat('test_data.mat')
+data = loadmat('data/batch_1.mat')
 lambda1 = 0.19029
 
 y = data['yi'][:,0]
@@ -38,14 +38,14 @@ for i, omega in enumerate(omegas):
     B[i] = (np.sum(cx * y))
 
 mag = np.sqrt(A**2+B**2)
-# plt.plot(omegas,mag)
-# plt.show()
+plt.plot(omegas,mag)
+plt.show()
 
 ind = np.argmax(mag)
 omega_init = omegas[ind]
 
 
-model_path = 'model.pkl'
+model_path = 'model2.pkl'
 if Path(model_path).is_file():
     model = pickle.load(open(model_path, 'rb'))
 else:
@@ -82,6 +82,7 @@ f_hmc = traces['f']
 nu_hmc = traces['nu']
 sig_lin = traces['sig_lin']
 h_hmc = traces['h']
+gamma_hmc = traces['gamma']
 
 plt.subplot(3,3,1)
 plt.hist(np.abs(A_hmc),30, density=True)
@@ -116,7 +117,7 @@ plt.hist(nu_hmc, density=True)
 plt.title('nu_hmc')
 
 plt.subplot(3,3,9)
-plt.hist(sig_lin, density=True)
+plt.hist(gamma_hmc, density=True)
 plt.title('sig_lin')
 
 plt.show()
@@ -130,22 +131,22 @@ plt.title('signal fit')
 plt.show()
 
 # h = f*lambda1/2
-lambda1 = 0.19029       # [m]
+# lambda1 = 0.19029       # [m]
 
-h = lambda1 * alpha_hmc / (2 * np.pi) /2
-plt.hist(h, density=True)
-plt.title('tidal height estimate distribution')
-plt.xlabel('height [m]')
-plt.ylabel('p(h | y)')
-plt.show()
-
-
-hg = lambda1 * beta_hmc / (2 * np.pi) /2
-plt.hist(hg, density=True)
-plt.title('tidal height gradient estimate distribution')
-plt.xlabel('height gradient [m / sine(elevation)]')
-plt.ylabel('p(h | y)')
-plt.show()
+# h = lambda1 * alpha_hmc / (2 * np.pi) /2
+# plt.hist(h, density=True)
+# plt.title('tidal height estimate distribution')
+# plt.xlabel('height [m]')
+# plt.ylabel('p(h | y)')
+# plt.show()
+#
+#
+# hg = lambda1 * beta_hmc / (2 * np.pi) /2
+# plt.hist(hg, density=True)
+# plt.title('tidal height gradient estimate distribution')
+# plt.xlabel('height gradient [m / sine(elevation)]')
+# plt.ylabel('p(h | y)')
+# plt.show()
 
 
 h_mean = h_hmc.mean(axis=0)
