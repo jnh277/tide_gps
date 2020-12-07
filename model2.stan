@@ -18,7 +18,7 @@ parameters {
     // does constraining these to postive make sense??
     real<lower=0.00001, upper=10.0> sig_e;          // noise variance
     real<lower=1.0,upper=100.0> nu;
-    real<lower=0, upper=100.0> sig_lin;     //
+    // real<lower=0, upper=100.0> sig_lin;     // have seen no evidence of this
 }
 transformed parameters {
     vector[N] f;
@@ -28,16 +28,18 @@ transformed parameters {
 model {
 
     // priors
-    alpha ~ cauchy(0.0, 1.0);
-    beta ~ cauchy(0.0, 1.0);
+    alpha ~ cauchy(100., 30.0);      // 100 roughly corresponds to a mean height of 1.5m
+    beta ~ cauchy(0.0, 60.0);
+    gamma ~ cauchy(0.0, 120.0);
     mu ~ cauchy(0.0, 1.0);
     A ~ cauchy(0.0, 1.0);
     B ~ cauchy(0.0, 1.0);
     sig_e ~ cauchy(0.0, 1.0);
+    tau ~ cauchy(0.0, 1.0);
 
     // likelihood model
 //    y ~ normal(f, sig_e);
-    y ~ student_t(nu, f, sig_e + sig_lin * x);
+    y ~ student_t(nu, f, sig_e);
 
 
 }

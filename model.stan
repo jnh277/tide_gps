@@ -11,13 +11,13 @@ parameters {
     real<lower=50,upper=400> alpha;     // frequency constant
     real<lower=-200,upper=200> beta;      // frequency linear
     real mu;                            // signal mean
-    real tau;                  // decay rate
+    real<lower=0> tau;                  // decay rate
     real A;                    // sin amplitude
     real B;                    // cos amplitude
     // does constraining these to postive make sense??
     real<lower=0.00001, upper=10.0> sig_e;          // noise variance
     real<lower=1.0,upper=100.0> nu;
-    real<lower=0, upper=100.0> sig_lin;     //
+ //   real<lower=0, upper=100.0> sig_lin;     //
 }
 transformed parameters {
     vector[N] f;
