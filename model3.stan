@@ -10,7 +10,9 @@ parameters {
     // set the upper limit according to nyquist sampling criteria?
     real<lower=50,upper=400> alpha;     // frequency constant
     real<lower=-200,upper=200> beta;      // frequency linear
-    real mu;                            // signal mean
+    real c0;                            // signal mean
+    real c1;                            // signal linear coefficient
+    real c2;                            // signal quadratic coefficient
     real<lower=0> tau;                  // decay rate
     real A;                    // sin amplitude
     real B;                    // cos amplitude
@@ -21,7 +23,7 @@ parameters {
 }
 transformed parameters {
     vector[N] f;
-    f = mu + exp(-tau * x) .* (A * sin(alpha * x + beta * x .* x ) + B * cos(alpha * x + beta * x .* x));
+    f = c0 + c1 * x + c2 * (x .* x) + exp(-tau * x) .* (A * sin(alpha * x + beta * x .* x ) + B * cos(alpha * x + beta * x .* x));
 }
 
 model {
@@ -29,7 +31,9 @@ model {
     // priors
     alpha ~ cauchy(100., 30.0);      // 100 roughly corresponds to a mean height of 1.5m
     beta ~ cauchy(0.0, 60.0);
-    mu ~ cauchy(0.0, 0.1);
+    c0 ~ cauchy(0.0, 0.1);
+    c1 ~ cauchy(0.0, 1.0);
+    c2 ~ cauchy(0.0, 3.0);
     A ~ cauchy(0.0, 2.0);
     B ~ cauchy(0.0, 2.0);
     sig_e ~ cauchy(0.0, 1.0);

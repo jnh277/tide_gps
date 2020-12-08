@@ -12,7 +12,7 @@ if __name__ == "__main__":
     for batch in tqdm(range(52), desc='processing batches'):
 
         # load batch
-        data = loadmat('data/batch_'+str(batch)+'.mat')
+        data = loadmat('data_restricted_270_360/batch_'+str(batch)+'.mat')
 
         y = data['yi'][:, 0]
         t = data['ti'][:, 0]
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         ind = np.argmax(mag)
         omega_init = omegas[ind]
 
-        model_path = 'model2.pkl'
+        model_path = 'model3.pkl'
         if Path(model_path).is_file():
             model = pickle.load(open(model_path, 'rb'))
         else:
@@ -75,7 +75,7 @@ if __name__ == "__main__":
             # traces_list = []
             # h_stds = []
             for c in range(max_count):
-                fit = model.sampling(data=stan_data, init=init_function, iter=3000, chains=4, refresh=3000, control=dict(adapt_delta=0.9, max_treedepth=13))
+                fit = model.sampling(data=stan_data, init=init_function, iter=10000, warmup=7000, chains=4, refresh=5000)#, control=dict(adapt_delta=0.9, max_treedepth=13))
 
                 # extract the results
                 traces = fit.extract()
@@ -94,7 +94,7 @@ if __name__ == "__main__":
             # traces = traces_list[ind]
             # traces['t'] = t
             # traces['h_tg'] = data['h_tg'][sel,0]
-            with open('results2/batch_'+str(batch)+'.pkl', 'wb') as handle:
+            with open('results3/batch_'+str(batch)+'.pkl', 'wb') as handle:
                 pickle.dump(traces, handle, protocol=pickle.HIGHEST_PROTOCOL)
         except:
             print('Error in fitting')

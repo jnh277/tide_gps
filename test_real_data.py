@@ -8,7 +8,7 @@ from pathlib import Path
 
 # data = loadmat('test_data.mat')
 # data = loadmat('data/batch_37.mat')       # max tide
-data = loadmat('data/batch_8.mat')          # min tide
+data = loadmat('data_restricted_270_360/batch_1.mat')          # min tide
 lambda1 = 0.19029
 
 y = data['yi'][:,0]
@@ -46,7 +46,7 @@ ind = np.argmax(mag)
 omega_init = omegas[ind]
 
 
-model_path = 'model2.pkl'
+model_path = 'model3.pkl'
 if Path(model_path).is_file():
     model = pickle.load(open(model_path, 'rb'))
 else:
@@ -67,7 +67,7 @@ stan_data = {'N':N,
              'lambda1':lambda1
              }
 
-fit = model.sampling(data=stan_data, init=init_function, iter=2000, chains=4)#, control=dict(adapt_delta=0.9, max_treedepth=13))
+fit = model.sampling(data=stan_data, init=init_function, iter=10000, warmup=7000, chains=4)#, control=dict(adapt_delta=0.9, max_treedepth=13))
 
 # extract the results
 traces = fit.extract()
@@ -77,13 +77,13 @@ B_hmc = traces['B']
 tau_hmc = traces['tau']
 alpha_hmc = traces['alpha']
 beta_hmc = traces['beta']
-mu_hmc = traces['mu']
+mu_hmc = traces['c0']
 sig_e_hmc = traces['sig_e']
 f_hmc = traces['f']
 nu_hmc = traces['nu']
 # sig_lin = traces['sig_lin']
 h_hmc = traces['h']
-gamma_hmc = traces['gamma']
+# gamma_hmc = traces['gamma']
 
 plt.subplot(3,3,1)
 plt.hist(np.abs(A_hmc),30, density=True)
@@ -117,9 +117,9 @@ plt.subplot(3,3,8)
 plt.hist(nu_hmc, density=True)
 plt.title('nu_hmc')
 
-plt.subplot(3,3,9)
-plt.hist(gamma_hmc, density=True)
-plt.title('gamma')
+# plt.subplot(3,3,9)
+# plt.hist(gamma_hmc, density=True)
+# plt.title('gamma')
 
 plt.tight_layout()
 

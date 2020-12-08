@@ -3,6 +3,8 @@
 **/.idea/*
 *model.pkl
 *model2.pkl
+*model3.pkl
 **/results/
 **/results2/
+**/results3/
 

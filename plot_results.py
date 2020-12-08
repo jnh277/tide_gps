@@ -28,7 +28,7 @@ if __name__ == "__main__":
         t = t[sel]
         h_tg = data['h_tg'][sel,0]
 
-        path = 'results2/batch_'+str(batch)+'.pkl'
+        path = 'results/batch_'+str(batch)+'.pkl'
         if Path(path).is_file():
             with open(path, 'rb') as handle:
                 traces = pickle.load(handle)
@@ -47,11 +47,12 @@ if __name__ == "__main__":
 
                 h_std = h_hmc.std(axis=0).mean()
 
-                if h_std < 0.01:
+                # if h_std < 0.01:
+                if True:
                     # plt.plot(t.mean(), h_hmc.mean(), 'o', color='black')
-                    # plt.errorbar(t.mean(),h_hmc.mean(),2*h_std, color='black')
-                    for ind in inds:
-                        plt.plot(t, h_hmc[ind, :], linewidth=2, color='g', alpha=0.01)
+                    plt.errorbar(t.mean(),h_hmc.mean(),2*h_std, color='black')
+                    # for ind in inds:
+                        # plt.plot(t, h_hmc[ind, :], linewidth=2, color='g', alpha=0.01)
                     # plt.plot(t, h_mean, color='k', label='mean')
                     good_batches.append(batch)
                     good_means.append(h_mean.mean())
