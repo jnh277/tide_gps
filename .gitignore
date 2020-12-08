@@ -1,5 +1,8 @@
 **/venv/**
 **/.DS_Store
 **/.idea/*
-.model.pkl
+*model.pkl
+*model2.pkl
 **/results/
+**/results2/
+

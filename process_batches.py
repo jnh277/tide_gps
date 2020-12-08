@@ -50,7 +50,7 @@ if __name__ == "__main__":
         ind = np.argmax(mag)
         omega_init = omegas[ind]
 
-        model_path = 'model.pkl'
+        model_path = 'model2.pkl'
         if Path(model_path).is_file():
             model = pickle.load(open(model_path, 'rb'))
         else:
@@ -71,13 +71,30 @@ if __name__ == "__main__":
                      'lambda1': lambda1
                      }
         try:
-            fit = model.sampling(data=stan_data, init=init_function, iter=2000, chains=4, refresh=2000)
+            max_count = 5
+            # traces_list = []
+            # h_stds = []
+            for c in range(max_count):
+                fit = model.sampling(data=stan_data, init=init_function, iter=3000, chains=4, refresh=3000, control=dict(adapt_delta=0.9, max_treedepth=13))
 
-            # extract the results
-            traces = fit.extract()
-            traces['t'] = t
-            traces['h_tg'] = data['h_tg'][sel,0]
-            with open('results/batch_'+str(batch)+'.pkl', 'wb') as handle:
+                # extract the results
+                traces = fit.extract()
+                h_hmc = traces['h']
+                h_std = h_hmc.std(axis=0).mean()
+
+                # traces_list.append(traces)
+                # h_stds.append(h_std)
+                if h_std < 0.01:
+                    print('SUCCESS')
+                    break
+                else:
+                    print('RETRY')
+
+            # ind = np.argmin(h_stds)
+            # traces = traces_list[ind]
+            # traces['t'] = t
+            # traces['h_tg'] = data['h_tg'][sel,0]
+            with open('results2/batch_'+str(batch)+'.pkl', 'wb') as handle:
                 pickle.dump(traces, handle, protocol=pickle.HIGHEST_PROTOCOL)
         except:
             print('Error in fitting')
