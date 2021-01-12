@@ -24,7 +24,7 @@ t = t[ind]
 h_tg = h_tg[ind]
 
 optimize_func = lambda x: x[0]*np.sin(x[1]*t+x[2]) + x[3] + x[4]*np.sin(x[5]*t+x[6]) - h_tg
-est_amp, est_freq, est_phase, est_mean, est_amp2, est_freq2, est_phase2 = leastsq(optimize_func, [-0.615, 2*np.pi/12, 0.83, 1.6, 0.2, 2*np.pi/24, 0])[0]
+est_amp, est_freq, est_phase, est_mean, est_amp2, est_freq2, est_phase2 = leastsq(optimize_func, [-0.615, 2*np.pi/12, 0.83, 1.6, 0.2, 2*np.pi/14, 0])[0]
 
 # recreate the fitted curve using the optimized parameters
 # est_amp = 1.2

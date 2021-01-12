@@ -1,61 +1,69 @@
 
 data {
-    int<lower=0> N;
-    vector[N] x;
-    vector[N] y;
-    vector[N] t;
+    int<lower=0> sets;              // number of data sets
+    int<lower=0> max_N;             // maximum set length
+    int<lower=0> N[sets];           // length of each data set
+    matrix[sets, max_N] x;
+    matrix[sets, max_N] y;
+    matrix[sets, max_N] t;
     real lambda1;
 }
 
 parameters {
-    // set the upper limit according to nyquist sampling criteria?
+    // tide model parameters
+    real<lower=0, upper=6> h0;                          // mean tide height
 
-    real<lower=0,upper=5> h;                           // current height
-//    real<lower=0.001> sig_h;
-//    vector[N] dh;
-    // Principle diurnal harmonic M1
-//    real<lower=2*pi()/14,upper=2*pi()/10> M1_freq;     // frequency between 11 and 12 hour period
-//    real<lower=-mu,upper=mu> M1_mag;                   // sin amplitude
-//    real<lower=-pi(),upper=pi()> M1_phase;              // cos amplitude
+    // Principle semi diurnal solar harmonic
+    real<lower=2*pi()/15,upper=2*pi()/9> M2_freq;     // frequency between 10 and 14 hour period
+    real M2_A;                   // sin amplitude
+    real M2_B;              // cos amplitude
+
+    // Principle semi diurnal lunar harmonic
+    real<lower=2*pi()/15,upper=2*pi()/9> S2_freq;     // frequency between 10 and 14 hour period
+    real S2_A;                   // sin amplitude
+    real S2_B;              // cos amplitude
 
     // signal parameters
-    real mu;                    // signal mean
-    real A;                                         // sin amplitude
-    real B;                                         // cos amplitude
-    real<lower=0> tau;                              // decay rate
-    real<lower=0.00001, upper=10.0> sig_e;          // noise variance
-    real<lower=1.0,upper=100.0> nu;                 // student's T degrees of freedom
-//    real<lower=0, upper=100.0> sig_lin;             // linear dependent noise, don't include for now
+    vector[sets] mu;                                        // signal mean
+    vector[sets] A;                                         // sin amplitude
+    vector[sets] B;                                         // cos amplitude
+    vector<lower=0>[sets] tau;                              // decay rate
+    vector<lower=0.00001, upper=10.0>[sets] sig_e;          // noise variance
+    vector<lower=1.0,upper=100.0>[sets] nu;                 // student's T degrees of freedom
 }
 transformed parameters {
-//    vector [N] h = M1_mag * sin(M1_freq * t + M1_phase); //+ B * cos(M1_freq * t);
-    real sf = h / lambda1 * 4 * pi();     // signal frequency
-    vector[N] signal;
-    signal = mu + exp(-tau * x) .* (A * sin(sf * x ) + B * cos(sf * x));
+    matrix[sets, max_N] h; //= h0 + M2_A * sin(M2_freq * t) + M2_B * cos(M2_freq * t) + S2_A * sin(M2_freq * t) + S2_B * cos(S2_freq * t);
+    matrix[sets, max_N] sf; // = h / lambda1 * 4 * pi();     // signal frequency
+    matrix[sets, max_N] signal;
+//    signal = rep_matrix(mu,max_N) + exp(-rep_matrix(tau,max_N) .* x) .* (rep_matrix(A,max_N) .* sin(sf .* x ) + rep_matrix(B,max_N) .* cos(sf .* x));
+
+    for (s in 1:sets)
+    {
+        h[s, 1:N[s]] = h0 + M2_A * sin(M2_freq * t[s, :N[s]]) + M2_B * cos(M2_freq * t[s, :N[s]]) + S2_A * sin(M2_freq * t[s,:N[s]])+ S2_B * cos(S2_freq * t[s, :N[s]]);
+        sf[s, 1:N[s]] = h[s, 1:N[s]] / lambda1 * 4 *pi();
+        signal[s, 1:N[s]] = mu[s] + exp(-tau[s] * x[s,:N[s]]) .* (A[s] * sin(sf[s,:N[s]] .* x[s,:N[s]] ) + B[s] * cos(sf[s,:N[s]] .* x[s,:N[s]]));
+    }
 }
 
 model {
+    // tide priors
+    M2_A ~ cauchy(0, 5.0);
+    M2_B ~ cauchy(0, 5.0);
+    S2_A ~ cauchy(0, 5.0);
+    S2_B ~ cauchy(0, 5.0);
+    M2_freq ~ cauchy(2*pi()/12, 0.2);
+    S2_freq ~ cauchy(2*pi()/12.5, 0.2);
 
-    // priors
-
-    mu ~ cauchy(0.0, 1.0);
-    A ~ cauchy(0.0, 1.0);
-    B ~ cauchy(0.0, 1.0);
+    // signal priors
+    mu ~ cauchy(0.0, 0.1);
+    A ~ cauchy(0.0, 2.0);
+    B ~ cauchy(0.0, 2.0);
     sig_e ~ cauchy(0.0, 1.0);
-//    sig_h ~ cauchy(0.0, 1.0);
+    tau ~ cauchy(0.0, 1.0);
 
-    // process model
-//    h[2:N] ~ normal(h[1:N-1], sig_h);
-
-    // likelihood model
-//    y ~ normal(f, sig_e);
-    y ~ student_t(nu, signal, sig_e);
+    for (s in 1:sets){
+        y[s,1:N[s]] ~ student_t(nu[s], signal[s,1:N[s]], sig_e[s]);
+    }
 
 
 }
-//generated quantities {
-//    vector[N] h;
-//    vector[N] frequency;
-//    frequency = alpha + beta * x;
-//    h = lambda1 * frequency / (2 * pi()) /2;
-//}

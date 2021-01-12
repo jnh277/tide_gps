@@ -1,25 +1,25 @@
 import numpy as np
 import pystan
 import matplotlib.pyplot as plt
-from scipy.io import loadmat
 import pickle
 from pathlib import Path
+from preprocess_data import load_iprn, preprocess_SNR, load_tide_gauge_data
+from helpers import calc_MAP
 
+# iprn = 4
+# j = 1
+# iprn = 5
+# j = 0
+iprn = 8
+j = 2
+# iprn = 15
+# j = 1
+segments = load_iprn(iprn, 'raw_data/dean2650.20snr')
+x, y, t, _, _ = preprocess_SNR(segments[j], min_elevation=2.5, max_sin_el=0.3, remove_trend=True)
 
-# data = loadmat('test_data.mat')
-# data = loadmat('data/batch_37.mat')       # max tide
-data = loadmat('data_restricted_270_360/batch_1.mat')          # min tide
 lambda1 = 0.19029
 
-y = data['yi'][:,0]
-t = data['ti'][:,0]
-x = data['xi'][:,0]
-
-sel = x < 0.35
-y = y[sel]
-x = x[sel]
-t = t[sel]
-
+h_tg_interp = load_tide_gauge_data('raw_data/tdg_no_header.txt')
 
 # normalise measurements
 mean_y = y.mean()
@@ -34,19 +34,25 @@ A = np.zeros(omegas.shape)
 B = np.zeros(omegas.shape)
 for i, omega in enumerate(omegas):
     sx = np.sin(omega*x)/np.sqrt(2)
-    cx = np.sin(omega*x)/np.sqrt(2)
+    cx = np.cos(omega*x)/np.sqrt(2)
     A[i] = (np.sum(sx * y))
     B[i] = (np.sum(cx * y))
 
 mag = np.sqrt(A**2+B**2)
-plt.plot(omegas,mag)
-plt.show()
-
 ind = np.argmax(mag)
 omega_init = omegas[ind]
 
+A_init = np.round(A[ind]/N * 100)/100
+B_init = np.round(B[ind]/N * 100)/100
 
-model_path = 'model3.pkl'
+plt.plot(omegas,mag)
+plt.title('Peak: omega = '+str(omega_init)+' A = '+str(A_init)+' B = '+str(B_init))
+plt.show()
+
+
+
+
+model_path = 'model.pkl'
 if Path(model_path).is_file():
     model = pickle.load(open(model_path, 'rb'))
 else:
@@ -54,7 +60,6 @@ else:
     with open(model_path, 'wb') as file:
         pickle.dump(model, file)
 # model = pystan.StanModel(file='model.stan')
-
 
 def init_function():
     output = dict(alpha=omega_init * np.random.uniform(0.8, 1.2)
@@ -67,7 +72,7 @@ stan_data = {'N':N,
              'lambda1':lambda1
              }
 
-fit = model.sampling(data=stan_data, init=init_function, iter=10000, warmup=7000, chains=4)#, control=dict(adapt_delta=0.9, max_treedepth=13))
+fit = model.sampling(data=stan_data, init=init_function, iter=6000, warmup=4000, chains=4)#, control=dict(adapt_delta=0.9, max_treedepth=13))
 
 # extract the results
 traces = fit.extract()
@@ -77,7 +82,7 @@ B_hmc = traces['B']
 tau_hmc = traces['tau']
 alpha_hmc = traces['alpha']
 beta_hmc = traces['beta']
-mu_hmc = traces['c0']
+mu_hmc = traces['mu']
 sig_e_hmc = traces['sig_e']
 f_hmc = traces['f']
 nu_hmc = traces['nu']
@@ -137,39 +142,23 @@ plt.plot(x,f_hmc.mean(axis=0))
 plt.title('signal fit')
 plt.show()
 
-# h = f*lambda1/2
-# lambda1 = 0.19029       # [m]
 
-# h = lambda1 * alpha_hmc / (2 * np.pi) /2
-# plt.hist(h, density=True)
-# plt.title('tidal height estimate distribution')
-# plt.xlabel('height [m]')
-# plt.ylabel('p(h | y)')
-# plt.show()
-#
-#
-# hg = lambda1 * beta_hmc / (2 * np.pi) /2
-# plt.hist(hg, density=True)
-# plt.title('tidal height gradient estimate distribution')
-# plt.xlabel('height gradient [m / sine(elevation)]')
-# plt.ylabel('p(h | y)')
-# plt.show()
-
+h_map = np.zeros((N))
+for i in range(N):
+    h_map[i] = calc_MAP(h_hmc[:,i])
 
 h_mean = h_hmc.mean(axis=0)
-# interesting observation, h might be linearly dependent on x,
-# but because t is not a linear function of x,
-# h is not linearly dependent on t
 
 m = h_hmc.shape[0]
-n_plot = 200
+n_plot = 400
 inds = np.random.choice(m, n_plot)
 
 plt.plot(t, h_hmc[0,:], linewidth=2, color='g', alpha=0.2, label='hmc samples')
 for ind in inds:
-    plt.plot(t, h_hmc[ind,:], linewidth=2, color='g', alpha=0.01)
+    plt.plot(t, h_hmc[ind,:], linewidth=2, color='g', alpha=0.03)
 plt.plot(t, h_mean, color='k', label='mean')
-plt.plot(t, data['h_tg'][sel,0]*0.01, color='red', ls='--', label='tide gauge')
+plt.plot(t, h_map, color='blue', label='MAP')
+plt.plot(t, h_tg_interp(t), color='red', ls='--', label='tide gauge')
 plt.title('tide height')
 plt.legend()
 plt.xlabel('time')
