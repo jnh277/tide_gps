@@ -54,6 +54,8 @@ if __name__ == "__main__":
         tau = 1.5
         gamma = 30
 
+        # stuff
+
         for j, segment in enumerate(segments):
             x_tmp, _, t_tmp, _, _ = preprocess_SNR(segment, min_elevation=5, max_sin_el=0.3, remove_trend=True)
             if len(x_tmp) == 0:
