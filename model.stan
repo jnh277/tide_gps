@@ -28,7 +28,7 @@ model {
 
     // priors
     alpha ~ cauchy(100., 30.0);      // 100 roughly corresponds to a mean height of 1.5m
-    beta ~ cauchy(0.0, 60.0);
+    beta ~ cauchy(0.0, 100.0);
     mu ~ cauchy(0.0, 0.1);
     A ~ cauchy(0.0, 2.0);
     B ~ cauchy(0.0, 2.0);
